@@ -1,0 +1,108 @@
+{
+    "projects": [
+        {
+            "_id": "proj-1",
+            "_createdDate": "2025-01-10T10:00:00.000Z",
+            "_updatedDate": "2025-03-01T12:00:00.000Z",
+            "name": "NexusPM Core Engine",
+            "description": "Build the real-time collaborative engine with CRDT support and WebSocket infrastructure.",
+            "status": "In Progress",
+            "team": "Platform Team",
+            "startDate": "2025-01-10",
+            "dueDate": "2025-06-30",
+            "priority": "High"
+        },
+        {
+            "_id": "proj-2",
+            "_createdDate": "2025-02-01T09:00:00.000Z",
+            "_updatedDate": "2025-03-10T15:00:00.000Z",
+            "name": "AI Ticket Generator",
+            "description": "Integrate OpenAI API to auto-generate tasks and user stories from project descriptions.",
+            "status": "Planning",
+            "team": "AI Team",
+            "startDate": "2025-03-01",
+            "dueDate": "2025-07-15",
+            "priority": "Medium"
+        },
+        {
+            "_id": "proj-3",
+            "_createdDate": "2024-11-15T08:00:00.000Z",
+            "_updatedDate": "2025-01-20T11:00:00.000Z",
+            "name": "Dashboard UI Redesign",
+            "description": "Redesign the main dashboard with the new Nexus design system and improved UX.",
+            "status": "Completed",
+            "team": "Design Team",
+            "startDate": "2024-11-15",
+            "dueDate": "2025-01-20",
+            "priority": "Low"
+        }
+    ],
+    "tasks": [
+        {
+            "_id": "task-1",
+            "_createdDate": "2025-01-12T10:00:00.000Z",
+            "_updatedDate": "2025-03-01T12:00:00.000Z",
+            "projectId": "proj-1",
+            "title": "Implement WebSocket server",
+            "description": "Set up Socket.io server with Redis adapter for horizontal scaling.",
+            "status": "Done",
+            "priority": "High",
+            "dueDate": "2025-02-15",
+            "assignedTo": "Alex",
+            "labels": "backend, infra"
+        },
+        {
+            "_id": "task-2",
+            "_createdDate": "2025-01-15T10:00:00.000Z",
+            "_updatedDate": "2025-03-05T12:00:00.000Z",
+            "projectId": "proj-1",
+            "title": "CRDT merge algorithm",
+            "description": "Implement conflict-free replicated data types for concurrent edits.",
+            "status": "In Progress",
+            "priority": "Critical",
+            "dueDate": "2025-04-01",
+            "assignedTo": "Sam",
+            "labels": "algorithm, core"
+        },
+        {
+            "_id": "task-3",
+            "_createdDate": "2025-02-01T10:00:00.000Z",
+            "_updatedDate": "2025-02-01T10:00:00.000Z",
+            "projectId": "proj-1",
+            "title": "Kanban drag-and-drop",
+            "description": "Build the multi-player Kanban board with live cursor support.",
+            "status": "To Do",
+            "priority": "Medium",
+            "dueDate": "2025-05-01",
+            "assignedTo": "Jordan",
+            "labels": "frontend, ui"
+        },
+        {
+            "_id": "task-4",
+            "_createdDate": "2025-02-10T10:00:00.000Z",
+            "_updatedDate": "2025-02-10T10:00:00.000Z",
+            "projectId": "proj-2",
+            "title": "OpenAI prompt engineering",
+            "description": "Design prompts for ticket generation from natural language input.",
+            "status": "To Do",
+            "priority": "Medium",
+            "dueDate": "2025-04-15",
+            "assignedTo": "Riley",
+            "labels": "ai, research"
+        },
+        {
+            "_id": "task-5",
+            "_createdDate": "2025-01-20T10:00:00.000Z",
+            "_updatedDate": "2025-03-10T12:00:00.000Z",
+            "projectId": "proj-3",
+            "title": "Design system tokens",
+            "description": "Define color, typography, and spacing tokens for the Nexus design system.",
+            "status": "Done",
+            "priority": "Low",
+            "dueDate": "2025-01-30",
+            "assignedTo": "Morgan",
+            "labels": "design, ui"
+        }
+    ],
+    "users": []
+}
