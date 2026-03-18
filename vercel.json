@@ -1,4 +1,1 @@
-{
-    "buildCommand": "npm run build",
-    "installCommand": "npm install --force"
-}
+{"framework":"astro","installCommand":"npm install --force","buildCommand":"npm run build"}
