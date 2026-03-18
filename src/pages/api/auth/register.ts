@@ -6,20 +6,15 @@ import { signToken, makeAuthCookie } from '@/lib/auth';
 
 export const POST: APIRoute = async ({ request }) => {
     const { email, password, name } = await request.json();
+    if (!email || !password) return Response.json({ error: 'Email and password are required' }, { status: 400 });
 
-    if (!email || !password) {
-        return Response.json({ error: 'Email and password are required' }, { status: 400 });
-    }
-
-    const db = getDb();
-    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
-    if (existing) {
-        return Response.json({ error: 'Email already registered' }, { status: 409 });
-    }
+    const db = await getDb();
+    const existing = await db.execute({ sql: 'SELECT id FROM users WHERE email = ?', args: [email] });
+    if (existing.rows[0]) return Response.json({ error: 'Email already registered' }, { status: 409 });
 
     const hash = await bcrypt.hash(password, 10);
     const id = randomUUID();
-    db.prepare('INSERT INTO users (id, email, password_hash, name) VALUES (?, ?, ?, ?)').run(id, email, hash, name ?? null);
+    await db.execute({ sql: 'INSERT INTO users (id, email, password_hash, name) VALUES (?, ?, ?, ?)', args: [id, email, hash, name ?? null] });
 
     const token = signToken({ id, email, name: name ?? email });
     return Response.json(

@@ -2,37 +2,38 @@ import type { APIRoute } from 'astro';
 import { getDb } from '@/lib/db';
 import { randomUUID } from 'crypto';
 
-export const GET: APIRoute = ({ url }) => {
-    const db = getDb();
+export const GET: APIRoute = async ({ url }) => {
+    const db = await getDb();
     const projectId = url.searchParams.get('projectId');
 
-    const rows = projectId
-        ? db.prepare('SELECT * FROM tasks WHERE project_id = ? ORDER BY created_at ASC').all(projectId)
-        : db.prepare('SELECT * FROM tasks ORDER BY created_at ASC').all();
+    const result = projectId
+        ? await db.execute({ sql: 'SELECT * FROM tasks WHERE project_id = ? ORDER BY created_at ASC', args: [projectId] })
+        : await db.execute('SELECT * FROM tasks ORDER BY created_at ASC');
 
-    return Response.json(rows.map(mapTask));
+    return Response.json(result.rows.map(mapTask));
 };
 
 export const POST: APIRoute = async ({ request }) => {
     const body = await request.json();
     if (!body.projectId) return Response.json({ error: 'projectId is required' }, { status: 400 });
 
-    const db = getDb();
+    const db = await getDb();
     const id = body._id ?? randomUUID();
     const now = new Date().toISOString();
 
-    db.prepare(`
-    INSERT INTO tasks (id, project_id, title, description, status, priority, due_date, assigned_to, labels, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-        id, body.projectId, body.title ?? null, body.description ?? null,
-        body.status ?? 'To Do', body.priority ?? 'Medium',
-        body.dueDate ?? null, body.assignedTo ?? null, body.labels ?? null,
-        now, now
-    );
+    await db.execute({
+        sql: `INSERT INTO tasks (id, project_id, title, description, status, priority, due_date, assigned_to, labels, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+            id, body.projectId, body.title ?? null, body.description ?? null,
+            body.status ?? 'To Do', body.priority ?? 'Medium',
+            body.dueDate ?? null, body.assignedTo ?? null, body.labels ?? null,
+            now, now,
+        ],
+    });
 
-    const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
-    return Response.json(mapTask(task), { status: 201 });
+    const row = await db.execute({ sql: 'SELECT * FROM tasks WHERE id = ?', args: [id] });
+    return Response.json(mapTask(row.rows[0]), { status: 201 });
 };
 
 export function mapTask(row: any) {

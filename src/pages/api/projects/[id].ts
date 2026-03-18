@@ -2,16 +2,16 @@ import type { APIRoute } from 'astro';
 import { getDb } from '@/lib/db';
 import { mapProject } from './index';
 
-export const GET: APIRoute = ({ params }) => {
-    const db = getDb();
-    const row = db.prepare('SELECT * FROM projects WHERE id = ?').get(params.id);
-    if (!row) return Response.json({ error: 'Not found' }, { status: 404 });
-    return Response.json(mapProject(row));
+export const GET: APIRoute = async ({ params }) => {
+    const db = await getDb();
+    const result = await db.execute({ sql: 'SELECT * FROM projects WHERE id = ?', args: [params.id!] });
+    if (!result.rows[0]) return Response.json({ error: 'Not found' }, { status: 404 });
+    return Response.json(mapProject(result.rows[0]));
 };
 
 export const PUT: APIRoute = async ({ params, request }) => {
     const body = await request.json();
-    const db = getDb();
+    const db = await getDb();
     const now = new Date().toISOString();
 
     const fields: string[] = [];
@@ -29,18 +29,18 @@ export const PUT: APIRoute = async ({ params, request }) => {
 
     fields.push('updated_at = ?');
     values.push(now);
-    values.push(params.id);
+    values.push(params.id!);
 
-    const result = db.prepare(`UPDATE projects SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+    const result = await db.execute({ sql: `UPDATE projects SET ${fields.join(', ')} WHERE id = ?`, args: values as any[] });
+    if (result.rowsAffected === 0) return Response.json({ error: 'Not found' }, { status: 404 });
 
-    if (result.changes === 0) return Response.json({ error: 'Not found' }, { status: 404 });
-    const row = db.prepare('SELECT * FROM projects WHERE id = ?').get(params.id);
-    return Response.json(mapProject(row));
+    const row = await db.execute({ sql: 'SELECT * FROM projects WHERE id = ?', args: [params.id!] });
+    return Response.json(mapProject(row.rows[0]));
 };
 
-export const DELETE: APIRoute = ({ params }) => {
-    const db = getDb();
-    const result = db.prepare('DELETE FROM projects WHERE id = ?').run(params.id);
-    if (result.changes === 0) return Response.json({ error: 'Not found' }, { status: 404 });
+export const DELETE: APIRoute = async ({ params }) => {
+    const db = await getDb();
+    const result = await db.execute({ sql: 'DELETE FROM projects WHERE id = ?', args: [params.id!] });
+    if (result.rowsAffected === 0) return Response.json({ error: 'Not found' }, { status: 404 });
     return Response.json({ success: true });
 };

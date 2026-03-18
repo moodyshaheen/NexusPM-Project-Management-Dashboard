@@ -1,37 +1,38 @@
-import Database from 'better-sqlite3';
-import { readFileSync, mkdirSync } from 'fs';
+import { createClient } from '@libsql/client';
+import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { mkdirSync } from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// On Vercel (read-only FS), use /tmp. Locally use data/ in project root.
-const DB_PATH = process.env.VERCEL
-    ? '/tmp/nexuspm.db'
-    : join(__dirname, '../../data/nexuspm.db');
-
-// Ensure the data directory exists (local only)
-if (!process.env.VERCEL) {
-    mkdirSync(dirname(DB_PATH), { recursive: true });
+function getDbUrl(): string {
+    // Vercel: use /tmp (ephemeral but works)
+    if (process.env.TURSO_DATABASE_URL) return process.env.TURSO_DATABASE_URL;
+    if (process.env.VERCEL) return 'file:/tmp/nexuspm.db';
+    const dbPath = join(__dirname, '../../data/nexuspm.db');
+    mkdirSync(dirname(dbPath), { recursive: true });
+    return `file:${dbPath}`;
 }
 
-let _db: Database.Database | null = null;
+const client = createClient({
+    url: getDbUrl(),
+    authToken: process.env.TURSO_AUTH_TOKEN,
+});
 
-export function getDb(): Database.Database {
-    if (_db) return _db;
+let initialized = false;
 
-    _db = new Database(DB_PATH);
-    _db.pragma('journal_mode = WAL');
-    _db.pragma('foreign_keys = ON');
-
-    initSchema(_db);
-    seedIfEmpty(_db);
-
-    return _db;
+export async function getDb() {
+    if (!initialized) {
+        await initSchema();
+        await seedIfEmpty();
+        initialized = true;
+    }
+    return client;
 }
 
-function initSchema(db: Database.Database) {
-    db.exec(`
+async function initSchema() {
+    await client.executeMultiple(`
     CREATE TABLE IF NOT EXISTS projects (
       id TEXT PRIMARY KEY,
       name TEXT,
@@ -56,8 +57,7 @@ function initSchema(db: Database.Database) {
       assigned_to TEXT,
       labels TEXT,
       created_at TEXT DEFAULT (datetime('now')),
-      updated_at TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+      updated_at TEXT DEFAULT (datetime('now'))
     );
 
     CREATE TABLE IF NOT EXISTS users (
@@ -70,57 +70,43 @@ function initSchema(db: Database.Database) {
   `);
 }
 
-function seedIfEmpty(db: Database.Database) {
-    const count = (db.prepare('SELECT COUNT(*) as c FROM projects').get() as { c: number }).c;
+async function seedIfEmpty() {
+    const result = await client.execute('SELECT COUNT(*) as c FROM projects');
+    const count = result.rows[0].c as number;
     if (count > 0) return;
 
     try {
         const seedPath = join(__dirname, '../data/db.json');
         const seed = JSON.parse(readFileSync(seedPath, 'utf-8'));
 
-        const insertProject = db.prepare(`
-      INSERT INTO projects (id, name, description, status, team, start_date, due_date, priority, created_at, updated_at)
-      VALUES (@id, @name, @description, @status, @team, @start_date, @due_date, @priority, @created_at, @updated_at)
-    `);
+        for (const p of seed.projects) {
+            await client.execute({
+                sql: `INSERT INTO projects (id, name, description, status, team, start_date, due_date, priority, created_at, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                args: [
+                    p._id, p.name ?? null, p.description ?? null,
+                    p.status ?? 'Planning', p.team ?? null,
+                    p.startDate ?? null, p.dueDate ?? null,
+                    p.priority ?? 'Medium',
+                    p._createdDate ?? new Date().toISOString(),
+                    p._updatedDate ?? new Date().toISOString(),
+                ],
+            });
+        }
 
-        const insertTask = db.prepare(`
-      INSERT INTO tasks (id, project_id, title, description, status, priority, due_date, assigned_to, labels, created_at, updated_at)
-      VALUES (@id, @project_id, @title, @description, @status, @priority, @due_date, @assigned_to, @labels, @created_at, @updated_at)
-    `);
-
-        const seedAll = db.transaction(() => {
-            for (const p of seed.projects) {
-                insertProject.run({
-                    id: p._id,
-                    name: p.name ?? null,
-                    description: p.description ?? null,
-                    status: p.status ?? 'Planning',
-                    team: p.team ?? null,
-                    start_date: p.startDate ?? null,
-                    due_date: p.dueDate ?? null,
-                    priority: p.priority ?? 'Medium',
-                    created_at: p._createdDate ?? new Date().toISOString(),
-                    updated_at: p._updatedDate ?? new Date().toISOString(),
-                });
-            }
-            for (const t of seed.tasks) {
-                insertTask.run({
-                    id: t._id,
-                    project_id: t.projectId,
-                    title: t.title ?? null,
-                    description: t.description ?? null,
-                    status: t.status ?? 'To Do',
-                    priority: t.priority ?? 'Medium',
-                    due_date: t.dueDate ?? null,
-                    assigned_to: t.assignedTo ?? null,
-                    labels: t.labels ?? null,
-                    created_at: t._createdDate ?? new Date().toISOString(),
-                    updated_at: t._updatedDate ?? new Date().toISOString(),
-                });
-            }
-        });
-
-        seedAll();
+        for (const t of seed.tasks) {
+            await client.execute({
+                sql: `INSERT INTO tasks (id, project_id, title, description, status, priority, due_date, assigned_to, labels, created_at, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                args: [
+                    t._id, t.projectId, t.title ?? null, t.description ?? null,
+                    t.status ?? 'To Do', t.priority ?? 'Medium',
+                    t.dueDate ?? null, t.assignedTo ?? null, t.labels ?? null,
+                    t._createdDate ?? new Date().toISOString(),
+                    t._updatedDate ?? new Date().toISOString(),
+                ],
+            });
+        }
     } catch (e) {
         console.error('Seed failed:', e);
     }
