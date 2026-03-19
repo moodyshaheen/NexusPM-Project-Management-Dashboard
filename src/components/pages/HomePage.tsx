@@ -86,7 +86,7 @@ export default function HomePage() {
   });
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-background text-foreground selection:bg-electric-teal/30 selection:text-electric-teal overflow-clip font-paragraph">
+    <div ref={containerRef} className="min-h-screen bg-background text-foreground selection:bg-electric-teal/30 selection:text-electric-teal overflow-x-hidden font-paragraph">
       <style>{`
         .nexus-grid {
           background-size: 40px 40px;
@@ -188,14 +188,14 @@ function HeroSection({ scrollYProgress }: { scrollYProgress: any }) {
             <span className="text-xs text-electric-teal tracking-widest uppercase font-semibold">Nexus Protocol Active</span>
           </div>
 
-          <h1 className="font-heading text-6xl md:text-8xl lg:text-9xl font-black mb-6 leading-[0.9] tracking-tighter">
+          <h1 className="font-heading text-4xlsm: text-6xl md:text-8xl lg:text-9xl font-black mb-6 leading-[0.9] tracking-tighter">
             <span className="text-foreground">AGILE </span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-electric-teal to-electric-magenta nexus-glow-text">
               SYNCHRONIZED
             </span>
           </h1>
 
-          <p className="font-paragraph text-lg md:text-xl text-foreground/60 mb-12 max-w-3xl mx-auto leading-relaxed">
+          <p className="font-paragraph text-base md:text-xl text-foreground/60 mb-12 max-w-3xl mx-auto leading-relaxed px-4">
             The ultimate collaborative command center. Real-time canvas, AI-driven workflows, and conflict-free data replication for high-velocity teams.
           </p>
 

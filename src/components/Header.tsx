@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Layers, LogOut, LogIn } from 'lucide-react';
@@ -6,11 +7,13 @@ import { useMember } from '@/integrations';
 export default function Header() {
   const location = useLocation();
   const { isAuthenticated, member, actions } = useMember();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-electric-teal/20">
+    <header className="fixed top-0 left-0 right-0 z-50  
+    bg-background/80 backdrop-blur-md border-b border-electric-teal/20">
       <div className="max-w-[120rem] mx-auto px-8 py-5">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -65,9 +68,23 @@ export default function Header() {
               </Link>
             )}
           </nav>
+          {menuOpen && (
+            <div className="md:hidden absolute top-full left-0 right-0 bg-background/95 backdrop-blur-md border-b border-electric-teal/20 px-8 py-4 flex flex-col gap-4">
+              <Link to={"/"} onClick={()=> setMenuOpen(false)} className='font-paragraph text-sm font-medium text-foreground/70' >Home</Link>
+               <Link to={"/projects"} onClick={()=> setMenuOpen(false)} className='font-paragraph text-sm font-medium text-foreground/70' >Porject</Link>
+               {isAuthenticated ? (
+                <button onClick={()=>{actions.logout(); setMenuOpen(false)}} className="text-left font-paragraph text-sm text-foreground/70">Sign Out</button>
+               ) : (
+                <Link to="/login" onClick={()=> setMenuOpen(false)} className='font-paragraph text-sm font-medium text-electric-teal' >Sign In</Link>
+               )
 
+               }
+            </div>
+          )
+
+          }
           {/* Mobile Menu Button */}
-          <button className="md:hidden text-foreground">
+          <button className="md:hidden text-foreground" onClick={()=>setMenuOpen(!menuOpen)}>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
