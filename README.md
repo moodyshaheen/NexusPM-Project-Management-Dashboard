@@ -1,19 +1,19 @@
-# NexusPM — Project Management Dashboard
+# NexusPM — Project Management Dashboard | لوحة إدارة المشاريع
 
 NexusPM is a full-stack project management application built for teams and individuals who need a clean, fast way to organize projects and track tasks. It features a Kanban-style task board, full project CRUD, and JWT-based authentication — all in a single deployable app.
 
 ---
 
-## Who is it for?
+## Who is it for? | لمن هذا المشروع؟
 
-- **Small teams** managing multiple projects simultaneously
+- **Small teams** managing multiple projects simultaneously 
 - **Freelancers** tracking client work and deliverables
 - **Developers** who want a self-hosted, no-subscription PM tool
 - **Anyone** who finds tools like Jira overkill for their workflow
 
 ---
 
-## What it does
+## What it does | ماذا يفعل؟
 
 - **Projects** — Create, view, edit, and delete projects with status, priority, team, and due date
 - **Task Board** — Kanban board per project with drag-and-drop across To Do / In Progress / Done columns
@@ -24,7 +24,7 @@ NexusPM is a full-stack project management application built for teams and indiv
 
 ---
 
-## Tech Stack
+## Tech Stack | التقنيات المستخدمة
 
 | Layer | Technology |
 |---|---|
@@ -42,7 +42,7 @@ NexusPM is a full-stack project management application built for teams and indiv
 
 ---
 
-## Getting Started
+## Getting Started | البداية
 
 ### Prerequisites
 
@@ -69,7 +69,7 @@ node dist/server/entry.mjs
 
 ---
 
-## Deploying to Vercel
+## Deploying to Vercel | النشر على Vercel
 
 NexusPM uses SQLite which writes to the local filesystem. Vercel's serverless functions have a **read-only filesystem** (except `/tmp`), so a standard SQLite deployment won't persist data between requests.
 
@@ -99,7 +99,7 @@ const DB_PATH = '/tmp/nexuspm.db';
 
 ---
 
-## Environment Variables
+## Environment Variables | متغيرات البيئة
 
 | Variable | Default | Description |
 |---|---|---|
@@ -113,7 +113,7 @@ JWT_SECRET=your-strong-random-secret-here
 
 ---
 
-## Project Structure
+## Project Structure | هيكل المشروع
 
 ```
 src/
